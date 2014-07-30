@@ -10,12 +10,13 @@ function usage {
     # Print the usage information, for this program.
 
     echo "Usage:
-    upload_to_s3.sh.sh -h
-    upload_to_s3.sh.sh -b <bucket> -s <source> [-m <age>] [-e <encoding>]
+    upload_to_s3.sh -h
+    upload_to_s3.sh -b <bucket> -s <source> [-p <prefix>] [-m <age>] [-e <encoding>]
 
     -h: display this help
     -b: bucket (S3 destination)
     -s: source (Where to copy from)
+    -p: prefix (String to prepend to s3 path)
     -m: age (How long assets live in the cache)
     -i: invalidation (Where to put an invalidation list file)
     -e: header encoding (i.e. pass gzip if you want it)"
@@ -33,7 +34,8 @@ function set_options {
 
     export MAX_AGE="300"
     export ENCODING=""
-    while getopts ":hs:b:m:e:i:" opt
+    export PREFIX=""
+    while getopts ":hs:p:b:m:e:i:" opt
     do
         case $opt in
         h)
@@ -45,6 +47,9 @@ function set_options {
             ;;
         s)
             export SRC_DIR="$OPTARG"
+            ;;
+        p)
+            export PREFIX="$OPTARG"
             ;;
         m)
             export MAX_AGE="$OPTARG"
@@ -124,7 +129,8 @@ then
 fi
 
 TEMPDIR=$(mktemp -dt jsdeploy.XXXXX)
-cp -R "$SRC_DIR"/* $TEMPDIR
+mkdir -p "$TEMPDIR/$PREFIX"
+cp -R "$SRC_DIR"/* "$TEMPDIR/$PREFIX"
 if [ -n $INVALIDATION_FILE ]
 then
     echo "Saving invalidation file to $INVALIDATION_FILE"
