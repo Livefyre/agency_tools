@@ -16,4 +16,11 @@ for url in $*
   last=$output
 done
 
-exit $all_same
+if [[ $all_same -eq 0 ]]
+then
+  ehco "FAILURE: Version Mismatch!"
+  exit $all_same
+else
+  echo "Success: All Versions Match"
+  exit 0
+fi
