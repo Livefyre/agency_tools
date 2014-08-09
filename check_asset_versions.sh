@@ -16,7 +16,7 @@ for url in $*
   last=$output
 done
 
-if [[ $all_same -eq 0 ]]
+if [[ "$all_same" -ne 0 ]]
 then
   echo "FAILURE: Version Mismatch!"
   exit $all_same
