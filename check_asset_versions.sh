@@ -18,7 +18,7 @@ done
 
 if [[ $all_same -eq 0 ]]
 then
-  ehco "FAILURE: Version Mismatch!"
+  echo "FAILURE: Version Mismatch!"
   exit $all_same
 else
   echo "Success: All Versions Match"
