@@ -5,7 +5,7 @@ set -e
 all_same=0
 
 for url in $*
-  do output=$(curl --compressed -s $url | tail -1 | perl -pe "s/fyre.conv.config.set\('assetVersion', (\d+)\);/\$1/")
+  do output=$(curl -s --compressed $url | tail -5 | perl -ne "/fyre.conv.config.set\('assetVersion', (\d+)\);/ && print \"\$1\n\"")
   echo "$output $url"
   if [[ -n "$last" ]]
   then
