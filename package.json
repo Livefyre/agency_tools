@@ -1,0 +1,14 @@
+{
+  "name": "agency-tools",
+  "description": "Tools",
+  "author": "Livefyre <support@livefyre.com>",
+  "contributors": {
+    "name": "Livefyre",
+    "email": "eng@livefyre.com"
+  },
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": {},
+  "devDependencies": {},
+  "repository": "http://www.github.com/Livefyre/agency_tools"
+}
