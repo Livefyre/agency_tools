@@ -10,8 +10,8 @@ function usage {
     # Print the usage information, for this program.
 
     echo "Usage:
-    upload_to_s3.sh -h
-    upload_to_s3.sh -b <bucket> -s <source> [-p <prefix>] [-m <age>] [-e <encoding>]
+    upload_to_s3.sh.sh -h
+    upload_to_s3.sh.sh -b <bucket> -s <source> [-p <prefix>] [-m <age>] [-e <encoding>] [-c <config>] [-r <regex>]
 
     -h: display this help
     -b: bucket (S3 destination)
@@ -19,7 +19,9 @@ function usage {
     -p: prefix (String to prepend to s3 path)
     -m: age (How long assets live in the cache)
     -i: invalidation (Where to put an invalidation list file)
-    -e: header encoding (i.e. pass gzip if you want it)"
+    -e: header encoding (i.e. pass gzip if you want it)
+    -c: s3cmd configuration
+    -r: regex exclude"
 
     return 0
 
@@ -34,8 +36,8 @@ function set_options {
 
     export MAX_AGE="300"
     export ENCODING=""
-    export PREFIX=""
-    while getopts ":hs:p:b:m:e:i:" opt
+    export CONFIG_FILE=~/.s3cfg
+    while getopts ":hs:p:b:m:e:i:c:r:" opt
     do
         case $opt in
         h)
@@ -60,6 +62,12 @@ function set_options {
         i)
             export INVALIDATION_FILE="$PWD/$OPTARG"
             ;;
+        c)
+            export CONFIG_FILE="$OPTARG"
+            ;;
+        r)
+            export REXCLUDE_PATTERN="--rexclude $OPTARG"
+            ;;
         \?)
             echo "$0: error - unrecognized option $1"
             usage
@@ -80,14 +88,14 @@ function set_options {
        return 1
    fi
 
-   if [ -z $DST_BUCKET ]
+   if [ -z "$DST_BUCKET" ]
        then
        echo "Option -b is required."
        usage
        return 1
    fi
 
-   if [ -z $SRC_DIR ]
+   if [ -z "$SRC_DIR" ]
    then
      echo "Option -s is required."
      usage
@@ -111,7 +119,7 @@ BUCKET_URL="s3://$DST_BUCKET/"
 #
 
 # Asset path must exist to upload resources
-if [ ! -d $SRC_DIR ]
+if [ ! -d "$SRC_DIR" ]
 then
     echo "Could not find assets to upload in '$SRC_DIR'"
     exit 1
@@ -121,8 +129,7 @@ fi
 #
 # Check that the correct config is loaded
 #
-
-if [[ $(s3cmd info $BUCKET_URL 2>&1 > /dev/null) =~ ^ERROR ]]
+if [[ $(s3cmd info --config $CONFIG_FILE $BUCKET_URL 2>&1 > /dev/null) =~ ^ERROR ]]
 then
     echo "Error running s3cmd, do you have the correct config installed?"
     exit 1
@@ -131,12 +138,12 @@ fi
 TEMPDIR=$(mktemp -dt jsdeploy.XXXXX)
 mkdir -p "$TEMPDIR/$PREFIX"
 cp -R "$SRC_DIR"/* "$TEMPDIR/$PREFIX"
-if [ -n $INVALIDATION_FILE ]
+if [ -n "$INVALIDATION_FILE" ]
 then
     echo "Saving invalidation file to $INVALIDATION_FILE"
 
-    pushd $TEMPDIR
-    find * -type f > $INVALIDATION_FILE
+    pushd "$TEMPDIR"
+    find * -type f > "$INVALIDATION_FILE"
     popd
 fi
 
@@ -150,10 +157,10 @@ else
 
     if [ "$ENCODING" == "gzip" ]
     then
-        find $TEMPDIR -type f -print0 | xargs -0 gzip
-        find $TEMPDIR -type f -name '*.gz' | while read f; do mv "$f" "${f%.gz}"; done
+        find "$TEMPDIR" -type f -print0 | xargs -0 gzip
+        find "$TEMPDIR" -type f -name '*.gz' | while read f; do mv "$f" "${f%.gz}"; done
     fi
 fi
 
-s3cmd sync -f -M --acl-public --add-header $MAXAGE_HEADER $ENCODING_HEADER "$TEMPDIR/" "$BUCKET_URL"
+s3cmd sync --config "$CONFIG_FILE" ${REXCLUDE_PATTERN} -f -M --acl-public --add-header $MAXAGE_HEADER $ENCODING_HEADER "$TEMPDIR/" "$BUCKET_URL"
 rm -rf $TEMPDIR
