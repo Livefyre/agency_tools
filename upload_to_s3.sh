@@ -66,7 +66,7 @@ function set_options {
             export CONFIG_FILE="$OPTARG"
             ;;
         r)
-            export REXCLUDE_PATTERN="-rexclude $OPTARG"
+            export REXCLUDE_PATTERN="--rexclude $OPTARG"
             ;;
         \?)
             echo "$0: error - unrecognized option $1"
@@ -162,5 +162,5 @@ else
     fi
 fi
 
-s3cmd sync --config "$CONFIG_FILE" -f -M --acl-public --add-header $MAXAGE_HEADER $ENCODING_HEADER "$TEMPDIR/" "$BUCKET_URL" $REXCLUDE_PATTERN
+s3cmd sync --config "$CONFIG_FILE" ${REXCLUDE_PATTERN} -f -M --acl-public --add-header $MAXAGE_HEADER $ENCODING_HEADER "$TEMPDIR/" "$BUCKET_URL"
 rm -rf $TEMPDIR
