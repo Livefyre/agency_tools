@@ -36,7 +36,7 @@ function set_options {
 
     export MAX_AGE="300"
     export ENCODING=""
-    export CONFIG_ARG=""
+    export CONFIG_FILE=~/.s3cfg
     while getopts ":hs:p:b:m:e:i:c:r:" opt
     do
         case $opt in
@@ -63,8 +63,8 @@ function set_options {
             export INVALIDATION_FILE="$PWD/$OPTARG"
             ;;
         c)
-            export CONFIG_ARG="-c $OPTARG"
-	    ;;
+            export CONFIG_FILE="$OPTARG"
+            ;;
         r)
             export REXCLUDE_PATTERN="-rexclude $OPTARG"
             ;;
@@ -129,7 +129,7 @@ fi
 #
 # Check that the correct config is loaded
 #
-if [[ $(s3cmd info $CONFIG_ARG $BUCKET_URL 2>&1 > /dev/null) =~ ^ERROR ]]
+if [[ $(s3cmd info --config $CONFIG_FILE $BUCKET_URL 2>&1 > /dev/null) =~ ^ERROR ]]
 then
     echo "Error running s3cmd, do you have the correct config installed?"
     exit 1
@@ -162,5 +162,5 @@ else
     fi
 fi
 
-s3cmd sync $CONFIG_ARG -f -M --acl-public --add-header $MAXAGE_HEADER $ENCODING_HEADER "$TEMPDIR/" "$BUCKET_URL" $REXCLUDE_PATTERN
+s3cmd sync --config "$CONFIG_FILE" -f -M --acl-public --add-header $MAXAGE_HEADER $ENCODING_HEADER "$TEMPDIR/" "$BUCKET_URL" $REXCLUDE_PATTERN
 rm -rf $TEMPDIR
