@@ -11,7 +11,7 @@ function usage {
 
     echo "Usage:
     upload_to_s3.sh.sh -h
-    upload_to_s3.sh.sh -b <bucket> -s <source> [-p <prefix>] [-m <age>] [-e <encoding>] [-c <config>] [-r <regex>]
+    upload_to_s3.sh.sh -b <bucket> -s <source> [-p <prefix>] [-m <age>] [-e <encoding>] [-c <config>] [-r <regex>] [-n <regex>]
 
     -h: display this help
     -b: bucket (S3 destination)
@@ -21,7 +21,8 @@ function usage {
     -i: invalidation (Where to put an invalidation list file)
     -e: header encoding (i.e. pass gzip if you want it)
     -c: s3cmd configuration
-    -r: regex exclude"
+    -r: regex exclude
+    -n: regex include"
 
     return 0
 
@@ -67,6 +68,9 @@ function set_options {
             ;;
         r)
             export REXCLUDE_PATTERN="--rexclude $OPTARG"
+            ;;
+        n)
+            export RINCLUDE_PATTERN="--rinclude $OPTARG"
             ;;
         \?)
             echo "$0: error - unrecognized option $1"
@@ -162,5 +166,5 @@ else
     fi
 fi
 
-s3cmd sync --config "$CONFIG_FILE" ${REXCLUDE_PATTERN} -f -M --acl-public --add-header $MAXAGE_HEADER $ENCODING_HEADER "$TEMPDIR/" "$BUCKET_URL"
+s3cmd sync --config "$CONFIG_FILE" ${REXCLUDE_PATTERN} ${RINCLUDE_PATTERN} -f -M --acl-public --add-header $MAXAGE_HEADER $ENCODING_HEADER "$TEMPDIR/" "$BUCKET_URL"
 rm -rf $TEMPDIR
