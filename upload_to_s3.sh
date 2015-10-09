@@ -38,7 +38,7 @@ function set_options {
     export MAX_AGE="300"
     export ENCODING=""
     export CONFIG_FILE=~/.s3cfg
-    while getopts ":hs:p:b:m:e:i:c:r:" opt
+    while getopts ":hs:p:b:m:e:i:c:r:n:" opt
     do
         case $opt in
         h)
