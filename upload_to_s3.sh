@@ -155,5 +155,7 @@ else
     fi
 fi
 
-s3cmd sync -M --acl-public --add-header $MAXAGE_HEADER $ENCODING_HEADER "$TEMPDIR/" "$BUCKET_URL"
+s3cmd sync --acl-public --exclude "*.*" --include "*.js" --add-header='Content-Type: application/javascript' --add-header $MAXAGE_HEADER $ENCODING_HEADER "$TEMPDIR/" "$BUCKET_URL"
+s3cmd sync --acl-public --exclude "*.*" --include "*.css" --add-header='Content-Type: text/css' --add-header $MAXAGE_HEADER $ENCODING_HEADER "$TEMPDIR/" "$BUCKET_URL"
+s3cmd sync -M --acl-public --exclude "*.css" --exclude "*.js" --add-header $MAXAGE_HEADER $ENCODING_HEADER "$TEMPDIR/" "$BUCKET_URL"
 rm -rf $TEMPDIR
