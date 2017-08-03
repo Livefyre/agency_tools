@@ -155,5 +155,5 @@ else
     fi
 fi
 
-s3cmd sync --acl-public --add-header $MAXAGE_HEADER $ENCODING_HEADER "$TEMPDIR/" "$BUCKET_URL"
+s3cmd sync -f -M --no-mime-magic --acl-public --add-header $MAXAGE_HEADER $ENCODING_HEADER "$TEMPDIR/" "$BUCKET_URL"
 rm -rf $TEMPDIR
