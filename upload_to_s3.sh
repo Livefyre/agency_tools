@@ -11,7 +11,7 @@ function usage {
 
     echo "Usage:
     upload_to_s3.sh -h
-    upload_to_s3.sh -b <bucket> -s <source> [-p <prefix>] [-m <age>] [-e <encoding>]
+    upload_to_s3.sh -b <bucket> -s <source> [-p <prefix>] [-m <age>] [-e <encoding>] [-c <config>] [-r <regex>] [-n <regex>]
 
     -h: display this help
     -b: bucket (S3 destination)
@@ -19,7 +19,10 @@ function usage {
     -p: prefix (String to prepend to s3 path)
     -m: age (How long assets live in the cache)
     -i: invalidation (Where to put an invalidation list file)
-    -e: header encoding (i.e. pass gzip if you want it)"
+    -e: header encoding (i.e. pass gzip if you want it)
+    -c: s3cmd configuration
+    -r: regex exclude
+    -n: regex include"
 
     return 0
 
@@ -35,7 +38,8 @@ function set_options {
     export MAX_AGE="300"
     export ENCODING=""
     export PREFIX=""
-    while getopts ":hs:p:b:m:e:i:" opt
+    export CONFIG_FILE=~/.s3cfg
+    while getopts ":hs:p:b:m:e:i:c:r:n:" opt
     do
         case $opt in
         h)
@@ -59,6 +63,15 @@ function set_options {
             ;;
         i)
             export INVALIDATION_FILE="$PWD/$OPTARG"
+            ;;
+        c)
+            export CONFIG_FILE="$OPTARG"
+            ;;
+        r)
+            export REXCLUDE_PATTERN="--rexclude $OPTARG"
+            ;;
+        n)
+            export RINCLUDE_PATTERN="--rinclude $OPTARG"
             ;;
         \?)
             echo "$0: error - unrecognized option $1"
@@ -121,8 +134,7 @@ fi
 #
 # Check that the correct config is loaded
 #
-
-if [[ $(s3cmd info $BUCKET_URL 2>&1 > /dev/null) =~ ^ERROR ]]
+if [[ $(s3cmd info --config $CONFIG_FILE $BUCKET_URL 2>&1 > /dev/null) =~ ^ERROR ]]
 then
     echo "Error running s3cmd, do you have the correct config installed?"
     exit 1
@@ -155,5 +167,5 @@ else
     fi
 fi
 
-s3cmd sync -f -M --no-mime-magic --acl-public --add-header $MAXAGE_HEADER $ENCODING_HEADER "$TEMPDIR/" "$BUCKET_URL"
+s3cmd sync --config "$CONFIG_FILE" ${REXCLUDE_PATTERN} ${RINCLUDE_PATTERN} -f -M --no-mime-magic --acl-public --add-header $MAXAGE_HEADER $ENCODING_HEADER "$TEMPDIR/" "$BUCKET_URL"
 rm -rf $TEMPDIR
