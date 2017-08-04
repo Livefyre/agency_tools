@@ -167,5 +167,5 @@ else
     fi
 fi
 
-s3cmd sync --config "$CONFIG_FILE" ${REXCLUDE_PATTERN} ${RINCLUDE_PATTERN} -f -M --no-mime-magic --acl-public --add-header $MAXAGE_HEADER $ENCODING_HEADER "$TEMPDIR/" "$BUCKET_URL"
+s3cmd sync --config "$CONFIG_FILE" ${REXCLUDE_PATTERN} ${RINCLUDE_PATTERN} -f -M -v --no-mime-magic --acl-public --add-header $MAXAGE_HEADER $ENCODING_HEADER "$TEMPDIR/" "$BUCKET_URL"
 rm -rf $TEMPDIR
